@@ -8,7 +8,7 @@ import time
 import re
 import csv
 
-csvfile=open('neuquen_prod.csv', 'w')
+csvfile=open('neuquen_prod.csv', 'w',encoding='utf-8')
 writer = csv.writer(csvfile, delimiter=',')
 writer.writerow('well' + "," + 'date' + "," + 'data' + "," + 'fluid')
 
@@ -40,13 +40,16 @@ for selected_year in ['2016','2015','2014','2013','2012','2011','2010']:
     # ------ GET THE WELL LIST ------
     well_select = Select(driver.find_element_by_xpath("//select[@name='pozo']"))
     #print ([o.text for o in well_select.options] ) #Prints "Option", followed by "Not Option"
-    well_list =[o.text for o in well_select.options]
-    well_list.pop(0) #remove first element which is not well name
+    well_list_name =[o.text for o in well_select.options]
+    well_list_value = [o.get_attribute("value") for o in well_select.options]
+    well_list_name.pop(0) #remove first element which is not well name
+    well_list_value.pop(0)  # remove first element which is not well name
 
     # ------ SELECT THE WELL ------
-    for well in well_list:
-
-        well_select.select_by_visible_text(well) #'YPF.NQ.LLL-1305(H)'
+    for well in well_list_value:
+        print(well)
+        well_select = Select(driver.find_element_by_xpath("//select[@name='pozo']"))
+        well_select.select_by_value(well) #'YPF.NQ.LLL-1305(H)'
         # ------ CLICK THE FLUID BUTTON ------
         for fluid_iter in [2,1,3]:
 
@@ -68,14 +71,14 @@ for selected_year in ['2016','2015','2014','2013','2012','2011','2010']:
                 year = re.search(r"subcaption='Pozo\s(.+)'.xAxis.+Año.(\d+)",data_str).group(2)
 
                 re_label = re.compile(r"label='\w+'")
-                re_value = re.compile(r"value='\w+.\w+'")
+                re_value = re.compile(r"value='\d*\.?\d*'")
 
 
                 label=re_label.findall(data_str)
                 value=re_value.findall(data_str)
                 for i in range(0,len(label)):
                     label[i]=re.sub(r"label='(\w+)'", r"\1", label[i])
-                    value[i] = re.sub(r"value='(\w+.\w+)'", r"\1", value[i])
+                    value[i] = re.sub(r"value='(\d*\.?\d*)'", r"\1", value[i])
                     print (wellname + ",01-" + label[i] + "-" + year + ","+  value[i] + "," + fluid)
                     writer.writerow(wellname + ",01-" + label[i] + "-" + year + ","+  value[i] + "," + fluid )
 
